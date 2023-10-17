@@ -17,9 +17,10 @@ class YahtzeeGame {
     private JTextField[] diceFields;
     private JCheckBox[] checkBoxes;
     private JPanel scorePanel;
-    private JTextField[][] scores;
+    private JButton[][] scoreButtons; // Changed score fields to buttons
     private JButton rollButton;
-    private JLabel playerLabel;
+    private JLabel player1Label;
+    private JLabel player2Label;
     private int currentPlayer;
     private int rollsRemaining;
     private int[][] diceValues;
@@ -32,7 +33,7 @@ class YahtzeeGame {
     public void start() {
         frame = new JFrame("Yahtzee Scorecard");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(400, 600);
+        frame.setSize(400, 700);
 
         currentPlayer = 1;
         rollsRemaining = 3;
@@ -53,6 +54,7 @@ class YahtzeeGame {
         for (int i = 0; i < 5; i++) {
             diceFields[i] = new JTextField(2);
             diceFields[i].setPreferredSize(new Dimension(50, 50));
+            diceFields[i].setEditable(false); // Make dice fields uneditable
             checkBoxes[i] = new JCheckBox("Keep");
             JPanel diceWithCheckbox = new JPanel();
             diceWithCheckbox.setLayout(new BoxLayout(diceWithCheckbox, BoxLayout.Y_AXIS));
@@ -67,13 +69,14 @@ class YahtzeeGame {
 
         scorePanel = new JPanel();
         scorePanel.setLayout(new GridLayout(19, 3));
-        scores = new JTextField[19][2];
+        scoreButtons = new JButton[19][2]; // Changed to buttons
 
-        playerLabel = new JLabel("Player 1");
+        player1Label = new JLabel("Player 1");
+        player1Label.setForeground(Color.RED); // Highlight Player 1 label in red
         scorePanel.add(new JLabel());
-        scorePanel.add(playerLabel);
-        playerLabel = new JLabel("Player 2");
-        scorePanel.add(playerLabel);
+        scorePanel.add(player1Label);
+        player2Label = new JLabel("Player 2");
+        scorePanel.add(player2Label);
 
         for (int i = 0; i < 18; i++) {
             JLabel label = new JLabel(categories[i]);
@@ -81,12 +84,24 @@ class YahtzeeGame {
 
             for (int j = 0; j < 2; j++) {
                 if (i == 7 || i == 8 || i == 16) {
-                    scores[i][j] = new JTextField();
-                    scores[i][j].setEditable(false);
+                    scoreButtons[i][j] = new JButton();
+                    scoreButtons[i][j].setEnabled(false); // Disable the bonus buttons
                 } else {
-                    scores[i][j] = new JTextField();
+                    scoreButtons[i][j] = new JButton("Score"); // Set the button text
                 }
-                scorePanel.add(scores[i][j]);
+                scorePanel.add(scoreButtons[i][j]);
+                final int categoryIndex = i;
+                final int playerIndex = j;
+                scoreButtons[i][j].addActionListener(new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        // Handle button click to update the score for the selected category
+                        if (!gameOver && scoreButtons[categoryIndex][playerIndex].isEnabled()) {
+                            scoreButtons[categoryIndex][playerIndex].setEnabled(false);
+                            updateScore(); // Update score and switch players
+                        }
+                    }
+                });
             }
         }
 
@@ -102,8 +117,6 @@ class YahtzeeGame {
 
                         if (rollsRemaining == 0) {
                             rollButton.setEnabled(false);
-                            // Determine and update the score after the third roll
-                            updateScore();
                         }
                     }
                 }
@@ -139,17 +152,29 @@ class YahtzeeGame {
     private void updateScore() {
         // Implement the logic to determine and update the score for the selected category.
 
-        // Reset checkboxes after the last throw of the current player
-        for (int i = 0; i < 5; i++) {
-            checkBoxes[i].setSelected(false);
+        boolean scoreButtonPressed = false; // Flag to track if a score button is pressed
+
+        for (int i = 0; i < 18; i++) {
+            for (int j = 0; j < 2; j++) {
+                if (scoreButtons[i][j].isEnabled()) {
+                    scoreButtonPressed = true; // Set the flag to true when a score button is pressed
+                }
+            }
         }
 
-        if (player1Turn) {
-            player1Turn = false; // Switch to Player 2's turn
-            playerLabel.setText("Player 2");
-        } else {
-            // Player 2's turn ends...
+        if (!scoreButtonPressed) {
+            return; // Turn doesn't switch if no score button is pressed
+        }
 
+        // Highlight the current player's label
+        if (player1Turn) {
+            player1Label.setForeground(Color.BLACK); // Reset Player 1 label color
+            player1Turn = false; // Switch to Player 2's turn
+            player2Label.setForeground(Color.RED); // Highlight Player 2 label in red
+        } else {
+            player2Label.setForeground(Color.BLACK); // Reset Player 2 label color
+
+            // Player 2's turn ends...
             // Implement the end of the game logic and scoring for Player 2.
             // You can also check for the game's end condition here.
 
@@ -162,11 +187,17 @@ class YahtzeeGame {
             }
 
             player1Turn = true; // Switch back to Player 1's turn
-            playerLabel.setText("Player 1");
+            player1Label.setForeground(Color.RED); // Highlight Player 1 label in red
         }
+
         rollsRemaining = 3; // Reset rolls for the next player
         rollButton.setEnabled(true);
         rollButton.setText("Roll (3 rolls left)");
+
+        // Reset checkboxes after a player's turn or after 3 rolls
+        for (int i = 0; i < 5; i++) {
+            checkBoxes[i].setSelected(false);
+        }
     }
 
     private void determineWinner() {
