@@ -7,7 +7,7 @@ import java.util.Random;
 public class Yahtzee_v1 {
     public static void main(String[] args) {
         YahtzeeGame yahtzeeGame = new YahtzeeGame();
-        yahtzeeGame.start();
+        yahtzeeGame.openNewGame();
     }
 }
 
@@ -29,9 +29,33 @@ class YahtzeeGame {
     private int round; // Track the current round
     private boolean player1Turn; // Add player1Turn variable
 
-    public void start() {
-        frame = new JFrame("Yahtzee Scorecard");
+    public void openNewGame(){
+        frame = new JFrame("Yahtzee");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+        JPanel startPanel = new JPanel();
+        startPanel.setLayout(new FlowLayout());
+
+        JButton button = new JButton("Start Game");
+        button.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed (ActionEvent e){
+                // When the button is clicked, hide it
+                frame.remove(startPanel);
+                start();
+            }
+        });
+
+        startPanel.add(button);
+
+        frame.add(startPanel, BorderLayout.SOUTH);
+
+        frame.setSize(200, 300);
+        frame.setLocationRelativeTo(null);
+        frame.setVisible(true);
+    }
+    public void start() {
+        frame.setTitle("Yahtzee Scorecard");
         frame.setSize(400, 700);
 
         currentPlayer = 1;
@@ -132,6 +156,7 @@ class YahtzeeGame {
         frame.add(dicePanel, BorderLayout.NORTH);
         frame.add(buttonPanel, BorderLayout.CENTER);
         frame.add(scorePanel, BorderLayout.SOUTH);
+        frame.setLocationRelativeTo(null);
         frame.setVisible(true);
 
         player1Turn = true;
