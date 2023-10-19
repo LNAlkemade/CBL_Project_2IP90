@@ -54,6 +54,7 @@ class YahtzeeGame {
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
     }
+    
     public void start() {
         frame.setTitle("Yahtzee Scorecard");
         frame.setSize(400, 700);
@@ -145,9 +146,8 @@ class YahtzeeGame {
                     if (rollsRemaining == 0) {
                         rollButton.setEnabled(false);
                         enableCategoryButtons();
-                    } else {
-                        rollButton.setText("Roll the Dice (" + rollsRemaining + " rolls left)");
                     }
+                    rollButton.setText("Roll the Dice (" + rollsRemaining + " rolls left)");
                 }
             }
         });
