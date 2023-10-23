@@ -22,17 +22,12 @@ class YahtzeeGame {
     private JLabel player1Label;
     private JLabel player2Label;
     private int currentPlayer;
-    private int rollsRemaining;
+    private int rollsRemainingForTurn; // Tracks rolls remaining for the current turn
     private int[][] diceValues;
     private boolean gameOver;
     private String[] categories;
-    private int round;
-    private boolean player1Turn;
     private JTextField probabilityField;
     private Random random;
-    private int rollsInCurrentTurn;
-    private int[] diceRollsInCurrentTurn;
-    private double currentYahtzeeProbability;
 
     public void openNewGame() {
         frame = new JFrame("Yahtzee");
@@ -55,7 +50,6 @@ class YahtzeeGame {
         frame.add(startPanel, BorderLayout.SOUTH);
 
         frame.setSize(200, 300);
-        frame.setLocationRelativeTo(null);
         frame.setVisible(true);
     }
 
@@ -64,7 +58,7 @@ class YahtzeeGame {
         frame.setSize(600, 700);
 
         currentPlayer = 1;
-        rollsRemaining = 3;
+        rollsRemainingForTurn = 3;
         diceValues = new int[5][2];
         categories = new String[]{
             "Points", "Ones", "Twos", "Threes", "Fours", "Fives", "Sixes",
@@ -149,20 +143,33 @@ class YahtzeeGame {
         rollButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if (!gameOver && rollsRemaining > 0) {
+                if (!gameOver && rollsRemainingForTurn > 0) {
                     rollDice();
                     updateDiceFields();
-                    rollsRemaining--;
+                    rollsRemainingForTurn--;
 
-                    if (rollsRemaining == 0) {
+                    if (rollsRemainingForTurn == 0) {
                         rollButton.setEnabled(false);
                         enableCategoryButtons();
                     }
-                    rollButton.setText("Roll the Dice (" + rollsRemaining + " rolls left)");
-                    calculateYahtzeeProbability();
+                    rollButton.setText("Roll the Dice (" + rollsRemainingForTurn + " rolls left)");
+                    if (rollsRemainingForTurn < 3) {
+                        calculateYahtzeeProbability();
+                    }
+                    disableCheckboxes();
                 }
             }
         });
+
+        // Add an action listener to each checkbox
+        for (int i = 0; i < 5; i++) {
+            checkBoxes[i].addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    calculateYahtzeeProbability();
+                }
+            });
+        }
 
         frame.setLayout(new BorderLayout());
         frame.add(dicePanel, BorderLayout.NORTH);
@@ -171,12 +178,8 @@ class YahtzeeGame {
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
 
-        player1Turn = true;
-        round = 1;
         gameOver = false;
         random = new Random();
-        rollsInCurrentTurn = 0;
-        diceRollsInCurrentTurn = new int[5];
     }
 
     private void rollDice() {
@@ -184,9 +187,7 @@ class YahtzeeGame {
             if (!checkBoxes[i].isSelected()) {
                 diceValues[i][currentPlayer - 1] = random.nextInt(6) + 1;
             }
-            diceRollsInCurrentTurn[i] = diceValues[i][currentPlayer - 1];
         }
-        rollsInCurrentTurn++;
     }
 
     private void updateDiceFields() {
@@ -196,19 +197,13 @@ class YahtzeeGame {
     }
 
     private void updateScore() {
-        // Implement the logic to determine and update the score for the selected category.
-        // This is a placeholder for your score update logic.
-
-        // Reset the dice values for the next player's turn
         for (int i = 0; i < 5; i++) {
             diceValues[i][currentPlayer - 1] = 0;
         }
 
-        // Enable the "Roll the Dice" button
         rollButton.setEnabled(true);
         rollButton.setText("Roll the Dice (3 rolls left)");
 
-        // Clear the text in the dice fields
         for (int i = 0; i < 5; i++) {
             diceFields[i].setText("");
         }
@@ -216,6 +211,7 @@ class YahtzeeGame {
 
     private void switchPlayer() {
         currentPlayer = (currentPlayer == 1) ? 2 : 1;
+        rollsRemainingForTurn = 3;
 
         if (currentPlayer == 1) {
             player1Label.setForeground(Color.RED);
@@ -225,10 +221,8 @@ class YahtzeeGame {
             player2Label.setForeground(Color.RED);
         }
 
-        rollsRemaining = 3;
-        rollsInCurrentTurn = 0;
-        currentYahtzeeProbability = 0.0; // Reset the probability for the new turn
-        probabilityField.setText(""); // Clear the probability field
+        probabilityField.setText("");
+        disableCheckboxes();
     }
 
     private void resetCheckBoxes() {
@@ -243,19 +237,37 @@ class YahtzeeGame {
         }
     }
 
-    private void calculateYahtzeeProbability() {
-        if (rollsInCurrentTurn == 1) {
-            int remainingYahtzees = 0; // Initialize to 0
-            for (int i = 0; i < 5; i++) {
-                if (!checkBoxes[i].isSelected()) {
-                    if (diceRollsInCurrentTurn[i] == 5) {
-                        remainingYahtzees = 1; // Set to 1 if there's a chance to get Yahtzee
-                        break;
-                    }
-                }
-            }
-            currentYahtzeeProbability = (double) remainingYahtzees * 100;
-            probabilityField.setText(String.format("%.2f%%", currentYahtzeeProbability));
+    private void disableCheckboxes() {
+        for (int i = 0; i < 5; i++) {
+            checkBoxes[i].setEnabled(rollsRemainingForTurn > 0);
         }
+    }
+
+    private void calculateYahtzeeProbability() {
+        int keptDiceCount = 0;
+        int sameValue = 0;
+
+        for (int i = 0; i < 5; i++) {
+            if (checkBoxes[i].isSelected()) {
+                int diceValue = diceValues[i][currentPlayer - 1];
+                if (sameValue == 0) {
+                    sameValue = diceValue;
+                } else if (diceValue != sameValue) {
+                    sameValue = -1;
+                }
+            } else {
+                keptDiceCount++;
+            }
+        }
+
+        double yahtzeeProbability = 0.0;
+
+        if (sameValue != -1 && keptDiceCount > 0) {
+            yahtzeeProbability = Math.pow(1.0 / 6.0, keptDiceCount);
+        }
+
+        double percentage = yahtzeeProbability * 100;
+
+        probabilityField.setText(String.format("%.2f%%", percentage));
     }
 }
