@@ -22,12 +22,14 @@ class YahtzeeGame {
     private JLabel player1Label;
     private JLabel player2Label;
     private int currentPlayer;
-    private int rollsRemainingForTurn; // Tracks rolls remaining for the current turn
+    private int rollsRemainingForTurn;
     private int[][] diceValues;
     private boolean gameOver;
     private String[] categories;
     private JTextField probabilityField;
     private Random random;
+    private int[] totalScores;
+    private boolean[] scoreButtonClicked;
 
     public void openNewGame() {
         frame = new JFrame("Yahtzee");
@@ -85,7 +87,7 @@ class YahtzeeGame {
         }
 
         JPanel buttonPanel = new JPanel();
-        rollButton = new JButton("Roll the Dice (3 rolls left)");
+        rollButton = new JButton("Roll the Dice (" + rollsRemainingForTurn + " rolls left)");
         buttonPanel.add(rollButton);
 
         JLabel probabilityLabel = new JLabel("Yahtzee Probability: ");
@@ -114,23 +116,36 @@ class YahtzeeGame {
                 if (i == 7 || i == 8 || i == 16) {
                     scoreButtons[i][j] = new JButton();
                     scoreButtons[i][j].setEnabled(false);
-                } else if ((i >= 1 && i <= 6) || (i >= 9 && i <= 15)) {
+                } else if (i >= 1 && i <= 6) {
                     final int categoryIndex = i;
                     final int playerIndex = j;
                     scoreButtons[i][j] = new JButton("Score");
                     scoreButtons[i][j].addActionListener(new ActionListener() {
                         @Override
                         public void actionPerformed(ActionEvent e) {
-                            if (!gameOver && scoreButtons[categoryIndex][playerIndex].isEnabled()
-                                && (playerIndex == (currentPlayer - 1))) {
+                            if (!gameOver) {
+                                int category = categoryIndex - 1; // Adjust for zero-based array
+                                int score = calculateScoreForCategory(category, playerIndex + 1);
+                                totalScores[playerIndex] += score; // Accumulate the score in the total score
+                                scoreButtonClicked[categoryIndex] = true; // Mark the button as clicked
                                 scoreButtons[categoryIndex][playerIndex].setEnabled(false);
+                                scoreButtons[0][playerIndex].setText(String.valueOf(totalScores[playerIndex])); // Update the total score label
                                 updateScore();
-                                switchPlayer();
+                                if (!gameOver) {
+                                    switchPlayer();
+                                }
                                 resetCheckBoxes();
                             }
                         }
                     });
+                } else if (i >= 9 && i <= 15) {
+                    // Categories for 3 of a kind, 4 of a kind, Full House, Small Straight, Large Straight, Yahtzee, and Chance
+                    JTextField textField = new JTextField();
+                    textField.setEditable(false);
+                    scoreButtons[i][j] = new JButton("Score");
+                    scoreButtons[i][j].setEnabled(false);
                 } else {
+                    // Grand Total
                     JTextField textField = new JTextField();
                     textField.setEditable(false);
                     scoreButtons[i][j] = new JButton("Score");
@@ -139,6 +154,7 @@ class YahtzeeGame {
                 scorePanel.add(scoreButtons[i][j]);
             }
         }
+
 
         rollButton.addActionListener(new ActionListener() {
             @Override
@@ -150,18 +166,19 @@ class YahtzeeGame {
 
                     if (rollsRemainingForTurn == 0) {
                         rollButton.setEnabled(false);
-                        enableCategoryButtons();
                     }
-                    rollButton.setText("Roll the Dice (" + rollsRemainingForTurn + " rolls left)");
+
                     if (rollsRemainingForTurn < 3) {
                         calculateYahtzeeProbability();
+                        enableCategoryButtons(); // Enable the score buttons for categories 1 to 6
                     }
+
+                    rollButton.setText("Roll the Dice (" + rollsRemainingForTurn + " rolls left)"); // Update the rollButton text
                     disableCheckboxes();
                 }
             }
         });
 
-        // Add an action listener to each checkbox
         for (int i = 0; i < 5; i++) {
             checkBoxes[i].addActionListener(new ActionListener() {
                 @Override
@@ -180,6 +197,24 @@ class YahtzeeGame {
 
         gameOver = false;
         random = new Random();
+        totalScores = new int[2];
+        scoreButtonClicked = new boolean[7];
+
+        for (int i = 0; i < 7; i++) {
+            scoreButtonClicked[i] = false;
+        }
+    }
+
+    private int calculateScoreForCategory(int category, int player) {
+        int score = 0;
+        int categoryValue = category + 1; // Adjust for one-based array
+
+        for (int i = 0; i < 5; i++) {
+            if (diceValues[i][player - 1] == categoryValue) {
+                score += categoryValue; // Count the category value rolled
+            }
+        }
+        return score;
     }
 
     private void rollDice() {
@@ -202,7 +237,6 @@ class YahtzeeGame {
         }
 
         rollButton.setEnabled(true);
-        rollButton.setText("Roll the Dice (3 rolls left)");
 
         for (int i = 0; i < 5; i++) {
             diceFields[i].setText("");
@@ -223,6 +257,7 @@ class YahtzeeGame {
 
         probabilityField.setText("");
         disableCheckboxes();
+        rollButton.setText("Roll the Dice (" + rollsRemainingForTurn + " rolls left)"); // Update the rollButton text
     }
 
     private void resetCheckBoxes() {
@@ -233,7 +268,9 @@ class YahtzeeGame {
 
     private void enableCategoryButtons() {
         for (int i = 1; i <= 6; i++) {
-            scoreButtons[i][currentPlayer - 1].setEnabled(true);
+            if (!scoreButtonClicked[i]) {
+                scoreButtons[i][currentPlayer - 1].setEnabled(true);
+            }
         }
     }
 
@@ -258,16 +295,16 @@ class YahtzeeGame {
             } else {
                 keptDiceCount++;
             }
+
+            double yahtzeeProbability = 0.0;
+
+            if (sameValue != -1 && keptDiceCount > 0) {
+                yahtzeeProbability = Math.pow(1.0 / 6.0, keptDiceCount);
+            }
+
+            double percentage = yahtzeeProbability * 100;
+
+            probabilityField.setText(String.format("%.2f%%", percentage));
         }
-
-        double yahtzeeProbability = 0.0;
-
-        if (sameValue != -1 && keptDiceCount > 0) {
-            yahtzeeProbability = Math.pow(1.0 / 6.0, keptDiceCount);
-        }
-
-        double percentage = yahtzeeProbability * 100;
-
-        probabilityField.setText(String.format("%.2f%%", percentage));
     }
 }
