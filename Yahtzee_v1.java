@@ -17,7 +17,7 @@ class YahtzeeGame {
     private JTextField[] diceFields;
     private JCheckBox[] checkBoxes;
     private JPanel scorePanel;
-    private JButton[][] scoreButtons;
+    private JButton[][] scoreButtons; // Use JButtons instead of JTextFields
     private JButton rollButton;
     private JLabel player1Label;
     private JLabel player2Label;
@@ -99,7 +99,7 @@ class YahtzeeGame {
 
         scorePanel = new JPanel();
         scorePanel.setLayout(new GridLayout(19, 3));
-        scoreButtons = new JButton[19][2];
+        scoreButtons = new JButton[19][2]; // Use JButtons for score buttons
 
         player1Label = new JLabel("Player 1");
         player1Label.setForeground(Color.RED);
@@ -108,6 +108,7 @@ class YahtzeeGame {
         player2Label = new JLabel("Player 2");
         scorePanel.add(player2Label);
 
+        // Inside the start() method
         for (int i = 0; i < 18; i++) {
             JLabel label = new JLabel(categories[i]);
             scorePanel.add(label);
@@ -116,44 +117,59 @@ class YahtzeeGame {
                 if (i == 7 || i == 8 || i == 16) {
                     scoreButtons[i][j] = new JButton();
                     scoreButtons[i][j].setEnabled(false);
-                } else if (i >= 1 && i <= 6) {
+                } else {
                     final int categoryIndex = i;
                     final int playerIndex = j;
-                    scoreButtons[i][j] = new JButton("Score");
-                    scoreButtons[i][j].addActionListener(new ActionListener() {
-                        @Override
-                        public void actionPerformed(ActionEvent e) {
-                            if (!gameOver && (playerIndex + 1) == currentPlayer) {
-                                int category = categoryIndex - 1; // Adjust for zero-based array
-                                int score = calculateScoreForCategory(category, playerIndex + 1);
-                                totalScores[playerIndex] += score; // Accumulate the score in the total score
-                                scoreButtonClicked[categoryIndex] = true; // Mark the button as clicked
-                                scoreButtons[categoryIndex][playerIndex].setEnabled(false);
-                                scoreButtons[0][playerIndex].setText(String.valueOf(totalScores[playerIndex])); // Update the total score label
-                                updateScore();
-                                if (!gameOver) {
-                                    switchPlayer();
+                    if (i >= 1 && i <= 6) {
+                        scoreButtons[i][j] = new JButton("Score");
+                        scoreButtons[i][j].addActionListener(new ActionListener() {
+                            @Override
+                            public void actionPerformed(ActionEvent e) {
+                                if (!gameOver && (playerIndex + 1) == currentPlayer) {
+                                    int category = categoryIndex - 1;
+                                    int score = calculateScoreForCategory(category, playerIndex + 1);
+                                    totalScores[playerIndex] += score;
+                                    scoreButtonClicked[categoryIndex] = true;
+                                    scoreButtons[categoryIndex][playerIndex].setEnabled(false);
+                                    scoreButtons[0][playerIndex].setText(String.valueOf(totalScores[playerIndex]));
+                                    updateScore();
+                                    if (!gameOver) {
+                                        switchPlayer();
+                                    }
+                                    resetCheckBoxes();
                                 }
-                                resetCheckBoxes();
                             }
-                        }
-                    });
-                } else if (i >= 9 && i <= 15) {
-                    // Categories for 3 of a kind, 4 of a kind, Full House, Small Straight, Large Straight, Yahtzee, and Chance
-                    JTextField textField = new JTextField();
-                    textField.setEditable(false);
-                    scoreButtons[i][j] = new JButton("Score");
-                    scoreButtons[i][j].setEnabled(false);
-                } else {
-                    // Grand Total
-                    JTextField textField = new JTextField();
-                    textField.setEditable(false);
-                    scoreButtons[i][j] = new JButton("Score");
-                    scoreButtons[i][j].setEnabled(false);
+                        });
+                    } else if (i >= 9 && i <= 15) {
+                        scoreButtons[i][j] = new JButton("Score");
+                        scoreButtons[i][j].addActionListener(new ActionListener() {
+                            @Override
+                            public void actionPerformed(ActionEvent e) {
+                                if (!gameOver && (playerIndex + 1) == currentPlayer) {
+                                    int category = categoryIndex - 1;
+                                    int score = 0; // Always set the score to zero for lower categories
+                                    totalScores[playerIndex] += score;
+                                    scoreButtonClicked[categoryIndex] = true;
+                                    scoreButtons[categoryIndex][playerIndex].setEnabled(false);
+                                    scoreButtons[0][playerIndex].setText(String.valueOf(totalScores[playerIndex]));
+                                    updateScore();
+                                    if (!gameOver) {
+                                        switchPlayer();
+                                    }
+                                    resetCheckBoxes();
+                                }
+                            }
+                        });
+                    } else {
+                        // Add buttons for other cases
+                        scoreButtons[i][j] = new JButton();
+                        scoreButtons[i][j].setEnabled(false);
+                    }
                 }
                 scorePanel.add(scoreButtons[i][j]);
             }
         }
+
 
         rollButton.addActionListener(new ActionListener() {
             @Override
@@ -169,11 +185,11 @@ class YahtzeeGame {
 
                     if (rollsRemainingForTurn < 3) {
                         calculateYahtzeeProbability();
-                        enableCategoryButtons(); // Enable the score buttons for categories 1 to 6
+                        enableCategoryButtons();
                     }
 
-                    rollButton.setText("Roll the Dice (" + rollsRemainingForTurn + " rolls left)"); // Update the rollButton text
-                    disableCheckboxes();
+                    rollButton.setText("Roll the Dice (" + rollsRemainingForTurn + " rolls left)");
+                    disableCheckBoxes();
                 }
             }
         });
@@ -197,20 +213,20 @@ class YahtzeeGame {
         gameOver = false;
         random = new Random();
         totalScores = new int[2];
-        scoreButtonClicked = new boolean[7];
+        scoreButtonClicked = new boolean[17];
 
-        for (int i = 0; i < 7; i++) {
+        for (int i = 0; i < 17; i++) {
             scoreButtonClicked[i] = false;
         }
     }
 
     private int calculateScoreForCategory(int category, int player) {
         int score = 0;
-        int categoryValue = category + 1; // Adjust for one-based array
+        int categoryValue = category + 1;
 
         for (int i = 0; i < 5; i++) {
             if (diceValues[i][player - 1] == categoryValue) {
-                score += categoryValue; // Count the category value rolled
+                score += categoryValue;
             }
         }
         return score;
@@ -255,8 +271,8 @@ class YahtzeeGame {
         }
 
         probabilityField.setText("");
-        disableCheckboxes();
-        rollButton.setText("Roll the Dice (" + rollsRemainingForTurn + " rolls left)"); // Update the rollButton text
+        disableCheckBoxes();
+        rollButton.setText("Roll the Dice (" + rollsRemainingForTurn + " rolls left)");
     }
 
     private void resetCheckBoxes() {
@@ -267,13 +283,13 @@ class YahtzeeGame {
 
     private void enableCategoryButtons() {
         for (int i = 1; i <= 6; i++) {
-            if (!scoreButtonClicked[i] && i != 7 && i != 8) { // Skip Bonus and Total Upper categories
+            if (!scoreButtonClicked[i] && i != 7 && i != 8) {
                 scoreButtons[i][currentPlayer - 1].setEnabled(true);
             }
         }
     }
 
-    private void disableCheckboxes() {
+    private void disableCheckBoxes() {
         for (int i = 0; i < 5; i++) {
             checkBoxes[i].setEnabled(rollsRemainingForTurn > 0);
         }
