@@ -123,7 +123,7 @@ class YahtzeeGame {
                     scoreButtons[i][j].addActionListener(new ActionListener() {
                         @Override
                         public void actionPerformed(ActionEvent e) {
-                            if (!gameOver) {
+                            if (!gameOver && (playerIndex + 1) == currentPlayer) {
                                 int category = categoryIndex - 1; // Adjust for zero-based array
                                 int score = calculateScoreForCategory(category, playerIndex + 1);
                                 totalScores[playerIndex] += score; // Accumulate the score in the total score
@@ -154,7 +154,6 @@ class YahtzeeGame {
                 scorePanel.add(scoreButtons[i][j]);
             }
         }
-
 
         rollButton.addActionListener(new ActionListener() {
             @Override
@@ -268,7 +267,7 @@ class YahtzeeGame {
 
     private void enableCategoryButtons() {
         for (int i = 1; i <= 6; i++) {
-            if (!scoreButtonClicked[i]) {
+            if (!scoreButtonClicked[i] && i != 7 && i != 8) { // Skip Bonus and Total Upper categories
                 scoreButtons[i][currentPlayer - 1].setEnabled(true);
             }
         }
