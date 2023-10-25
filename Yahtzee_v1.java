@@ -225,30 +225,31 @@ class YahtzeeGame {
         }
     }
 
-        private int calculateScoreForCategory(int category, int player) {
-            int score = 0;
-            int categoryValue = category + 1; // Adjust for one-based array
-            if (categoryValue < 7){
+    private int calculateScoreForCategory(int category, int player) {
+        int score = 0;
+        int categoryValue = category + 1; // Adjust for one-based array
+        
+        if (categoryValue < 7) {
             for (int i = 0; i < 5; i++) {
                 if (diceValues[i][player - 1] == categoryValue) {
                     score += categoryValue; // Count the category value rolled
                 }
             }
             return score;
-            }else{ System.out.println(categoryValue);
-                switch (categoryValue) {
-                    
-                    case 9:
-                    boolean threeAreSame = false;
+        } else {
+            System.out.println(categoryValue);
+            switch (categoryValue) {
+                case 9:
                     int sum = 0;
                     int[] currentPlayerDice = new int[5];
                     for (int i = 0; i < 5; i++) {
-                        currentPlayerDice[i] = diceValues[i][currentPlayer - 1];
+                        currentPlayerDice[i] = diceValues[i][player - 1];
                         sum += currentPlayerDice[i];
                     }
 
                     Arrays.sort(currentPlayerDice);
 
+                    boolean threeAreSame = false;
                     for (int i = 0; i <= 2; i++) {
                         if (currentPlayerDice[i] == currentPlayerDice[i + 2]) {
                             threeAreSame = true;
@@ -256,58 +257,115 @@ class YahtzeeGame {
                         }
                     }
 
-                    if (threeAreSame) {
-                        // Three of the dice values are the same for the current player
-                        return sum;
-                    } else {
-                        return 0;
+                    return threeAreSame ? sum : 0;
+
+                case 10:
+                    int[] counts = new int[7];
+                    int maxSum = 0;
+
+                    for (int i = 0; i < 5; i++) {
+                        int currentValue = diceValues[i][player - 1];
+                        counts[currentValue]++;
+                        maxSum += currentValue;
                     }
 
+                    for (int value = 1; value <= 6; value++) {
+                        if (counts[value] >= 4) {
+                            return maxSum;
+                        }
+                    }
+                    return 0;
 
-                    case 10:
-                        int[] counts = new int[7]; // We have 6 possible dice values, so we need 7 slots (0 is unused)
-                        int maxSum = 0;
+                case 11:
+                    int[] counts11 = new int[7];
+                    for (int i = 0; i < 5; i++) {
+                        int currentValue = diceValues[i][player - 1];
+                        counts11[currentValue]++;
+                    }
 
-                        for (int i = 0; i < 5; i++) {
-                            int currentValue = diceValues[i][player - 1];
-                            counts[currentValue]++;
-                            maxSum += currentValue;
+                    boolean hasThreeOfAKind = false;
+                    boolean hasTwoOfAKind = false;
+
+                    for (int value = 1; value <= 6; value++) {
+                        if (counts11[value] == 3) {
+                            hasThreeOfAKind = true;
+                        } else if (counts11[value] == 2) {
+                            hasTwoOfAKind = true;
+                        }
+                    }
+
+                    return (hasThreeOfAKind && hasTwoOfAKind) ? 25 : 0;
+
+                case 12:
+                    int[] counts2 = new int[7];
+                    for (int i = 0; i < 5; i++) {
+                        int currentValue = diceValues[i][player - 1];
+                        counts2[currentValue]++;
+                    }
+
+                    int consecutiveCount = 0;
+                    for (int value = 1; value <= 6; value++) {
+                        if (counts2[value] > 0) {
+                            consecutiveCount++;
+                        } else {
+                            consecutiveCount = 0;
                         }
 
-                        for (int value = 1; value <= 6; value++) {
-                            if (counts[value] >= 4) {
-                                // There are at least four dice with the same value
-                                return maxSum;
-                            }
+                        if (consecutiveCount >= 4) {
+                            return 15;
+                        }
+                    }
+                    return 0;
+
+                case 13:
+                    int[] counts13 = new int[7];
+                    for (int i = 0; i < 5; i++) {
+                        int currentValue = diceValues[i][player - 1];
+                        counts13[currentValue]++;
+                    }
+
+                    int consecutiveCount13 = 0;
+                    for (int value = 1; value <= 6; value++) {
+                        if (counts13[value] > 0) {
+                            consecutiveCount13++;
+                        } else {
+                            consecutiveCount13 = 0;
                         }
 
-                        return 0;
+                        if (consecutiveCount13 >= 5) {
+                            return 40;
+                        }
+                    }
+                    return 0;
 
-                    case 11:
-                        score = 2;
-                        return score;
+                case 14:
+                    int[] counts14 = new int[7];
+                    for (int i = 0; i < 5; i++) {
+                        int currentValue = diceValues[i][player - 1];
+                        counts14[currentValue]++;
+                    }
 
-                    case 12:
-                        score = 2;
-                        return score;
+                    for (int value = 1; value <= 6; value++) {
+                        if (counts14[value] >= 5) {
+                            return 50;
+                        }
+                    }
+                    return 0;
 
-                    case 13:
-                        score = 2;
-                        return score;
+                case 15:
+                    int sumChance = 0;
+                    for (int i = 0; i < 5; i++) {
+                        int currentValue = diceValues[i][player - 1];
+                        sumChance += currentValue;
+                    }
+                    return sumChance;
 
-                    case 14:
-                        score = 2;
-                        return score;
-
-                    case 15:
-                        score = 2;
-                        return score;
-                
-                    default:
-                        return -1;
-                } 
-                }
+                default:
+                    return -1;
+            }
         }
+    }
+
     private void rollDice() {
         for (int i = 0; i < 5; i++) {
             if (!checkBoxes[i].isSelected()) {
