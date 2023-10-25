@@ -169,7 +169,7 @@ class YahtzeeGame {
                     // Grand Total
                     JTextField textField = new JTextField();
                     textField.setEditable(false);
-                    scoreButtons[i][j] = new JButton("Score");
+                    scoreButtons[i][j] = new JButton();
                     scoreButtons[i][j].setEnabled(false);
                 }
                 scorePanel.add(scoreButtons[i][j]);
@@ -312,7 +312,7 @@ class YahtzeeGame {
                         }
 
                         if (consecutiveCount >= 4) {
-                            return 15;
+                            return 30;
                         }
                     }
                     return 0;
