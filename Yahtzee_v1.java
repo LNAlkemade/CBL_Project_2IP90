@@ -239,13 +239,49 @@ class YahtzeeGame {
                 switch (categoryValue) {
                     
                     case 9:
-                    System.out.println(diceValues[0]);
-                    System.out.println(diceValues[1]);
-                    return 0; // No three identical elements found
+                    boolean threeAreSame = false;
+                    int sum = 0;
+                    int[] currentPlayerDice = new int[5];
+                    for (int i = 0; i < 5; i++) {
+                        currentPlayerDice[i] = diceValues[i][currentPlayer - 1];
+                        sum += currentPlayerDice[i];
+                    }
+
+                    Arrays.sort(currentPlayerDice);
+
+                    for (int i = 0; i <= 2; i++) {
+                        if (currentPlayerDice[i] == currentPlayerDice[i + 2]) {
+                            threeAreSame = true;
+                            break;
+                        }
+                    }
+
+                    if (threeAreSame) {
+                        // Three of the dice values are the same for the current player
+                        return sum;
+                    } else {
+                        return 0;
+                    }
+
 
                     case 10:
-                        score = 2;
-                        return score;
+                        int[] counts = new int[7]; // We have 6 possible dice values, so we need 7 slots (0 is unused)
+                        int maxSum = 0;
+
+                        for (int i = 0; i < 5; i++) {
+                            int currentValue = diceValues[i][player - 1];
+                            counts[currentValue]++;
+                            maxSum += currentValue;
+                        }
+
+                        for (int value = 1; value <= 6; value++) {
+                            if (counts[value] >= 4) {
+                                // There are at least four dice with the same value
+                                return maxSum;
+                            }
+                        }
+
+                        return 0;
 
                     case 11:
                         score = 2;
