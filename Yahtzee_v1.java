@@ -31,7 +31,8 @@ class YahtzeeGame {
     private JTextField probabilityField;
     private Random random;
     private int[] totalScores, upperScores;
-    private boolean[] scoreButtonClicked;
+    private int[][] categoryScores;
+    private boolean[] scoreButtonClicked, bonusAdded;
 
     public void openNewGame() {
         frame = new JFrame("Yahtzee");
@@ -118,7 +119,7 @@ class YahtzeeGame {
 
             for (int j = 0; j < 2; j++) {
                 if (i == 7 || i == 8 || i == 16) {
-                    scoreButtons[i][j] = new JButton();
+                    scoreButtons[i][j] = new JButton("No score");
                     scoreButtons[i][j].setEnabled(false);
                 } else if (i >= 1 && i <= 6) {
                     final int categoryIndex = i;
@@ -129,11 +130,18 @@ class YahtzeeGame {
                         public void actionPerformed(ActionEvent e) {
                             if (!gameOver && (playerIndex + 1) == currentPlayer) {
                                 int category = categoryIndex - 1; // Adjust for zero-based array
-                                int score = calculateScoreForCategory(category, playerIndex + 1);
-                                totalScores[playerIndex] += score; // Accumulate the score in the total score
-                                upperScores[playerIndex] += score;
+                                categoryScores[category][playerIndex] = calculateScoreForCategory(category, playerIndex + 1);
+                                totalScores[playerIndex] += categoryScores[category][playerIndex]; // Accumulate the score in the total score
+                                upperScores[playerIndex] += categoryScores[category][playerIndex];
                                 scoreButtonClicked[categoryIndex] = true; // Mark the button as clicked
                                 scoreButtons[categoryIndex][playerIndex].setEnabled(false);
+                                if(!bonusAdded[playerIndex]){
+                                    if(upperScores[playerIndex] > 63) {
+                                        totalScores[playerIndex] += 35;
+                                        bonusAdded[playerIndex] = true;
+                                        scoreButtons[8][playerIndex].setText("35");
+                                    }
+                                }
                                 scoreButtons[0][playerIndex].setText(String.valueOf(totalScores[playerIndex])); // Update the total score label
                                 scoreButtons[7][playerIndex].setText(String.valueOf(upperScores[playerIndex])); // Update upper score total
                                 updateScore();
@@ -156,8 +164,8 @@ class YahtzeeGame {
                         public void actionPerformed(ActionEvent e) {
                             if (!gameOver && (playerIndex + 1) == currentPlayer) {
                                 int category = categoryIndex - 1; // Adjust for zero-based array
-                                int score = calculateScoreForCategory(category, playerIndex + 1);
-                                totalScores[playerIndex] += score; // Accumulate the score in the total score
+                                categoryScores[category][playerIndex] = calculateScoreForCategory(category, playerIndex + 1);
+                                totalScores[playerIndex] += categoryScores[category][playerIndex]; // Accumulate the score in the total score
                                 scoreButtonClicked[categoryIndex] = true; // Mark the button as clicked
                                 scoreButtons[categoryIndex][playerIndex].setEnabled(false);
                                 scoreButtons[0][playerIndex].setText(String.valueOf(totalScores[playerIndex])); // Update the total score label
@@ -231,6 +239,8 @@ class YahtzeeGame {
         random = new Random();
         totalScores = new int[2];
         upperScores = new int[2];
+        categoryScores = new int[19][2];
+        bonusAdded = new boolean[2];
         scoreButtonClicked = new boolean[16];
 
         for (int i = 0; i < 7; i++) {
