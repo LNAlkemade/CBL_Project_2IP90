@@ -30,7 +30,7 @@ class YahtzeeGame {
     private String[] categories;
     private JTextField probabilityField;
     private Random random;
-    private int[] totalScores, upperScores, yahtzeeBonus;
+    private int[] totalScores, upperScores, lowerScores, yahtzeeBonus;
     private int[][] categoryScores;
     private boolean[] scoreButtonClicked, bonusAdded, yahtzeeBonusScored;
 
@@ -67,10 +67,10 @@ class YahtzeeGame {
         rollsRemainingForTurn = 3;
         diceValues = new int[5][2];
         categories = new String[]{
-                "Points", "Ones", "Twos", "Threes", "Fours", "Fives", "Sixes",
-                "Total Upper", "Bonus (35)", "3 of a kind", "4 of a kind", "Full House (25)",
+                "Grand Total", "Ones", "Twos", "Threes", "Fours", "Fives", "Sixes",
+                "Bonus (35)", "Total Upper", "3 of a kind", "4 of a kind", "Full House (25)",
                 "Sm Straight (30)", "Lg Straight (40)", "Yahtzee (50)", "Chance", "Yahtzee Bonus (100)",
-                "Grand Total"
+                "Total Lower"
         };
 
         dicePanel = new JPanel();
@@ -140,11 +140,11 @@ class YahtzeeGame {
                                     if(upperScores[playerIndex] > 63) {
                                         totalScores[playerIndex] += 35;
                                         bonusAdded[playerIndex] = true;
-                                        scoreButtons[8][playerIndex].setText("35");
+                                        scoreButtons[7][playerIndex].setText("35");
                                     }
                                 }
                                 scoreButtons[0][playerIndex].setText(String.valueOf(totalScores[playerIndex])); // Update the total score label
-                                scoreButtons[7][playerIndex].setText(String.valueOf(upperScores[playerIndex])); // Update upper score total
+                                scoreButtons[8][playerIndex].setText(String.valueOf(upperScores[playerIndex])); // Update upper score total
                                 updateScore();
                                 if (!gameOver) {
                                     switchPlayer();
@@ -167,11 +167,13 @@ class YahtzeeGame {
                                 int category = categoryIndex - 1; // Adjust for zero-based array
                                 categoryScores[category][playerIndex] = calculateScoreForCategory(category, playerIndex + 1);
                                 totalScores[playerIndex] += categoryScores[category][playerIndex]; // Accumulate the score in the total score
+                                lowerScores[playerIndex] += categoryScores[category][playerIndex];
                                 if(categoryIndex != 14) { //exclude yahtzee button to allow bonus scores
                                     scoreButtonClicked[categoryIndex] = true; // Mark the button as clicked
                                     scoreButtons[categoryIndex][playerIndex].setEnabled(false);
                                 }
                                 scoreButtons[0][playerIndex].setText(String.valueOf(totalScores[playerIndex])); // Update the total score label
+                                scoreButtons[17][playerIndex].setText(String.valueOf(lowerScores[playerIndex])); // Update upper score total
                                 updateScore();
                                 if (!gameOver) {
                                     switchPlayer();
@@ -195,7 +197,8 @@ class YahtzeeGame {
         restartButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e){
-                start();
+                frame.dispose();
+                openNewGame();
             }
         });
 
@@ -242,8 +245,9 @@ class YahtzeeGame {
         random = new Random();
         totalScores = new int[2];
         upperScores = new int[2];
-        categoryScores = new int[19][2];
         bonusAdded = new boolean[2];
+        categoryScores = new int[17][2];
+        lowerScores = new int[2];
         yahtzeeBonus = new int[2];
         yahtzeeBonusScored = new boolean[2];
         scoreButtonClicked = new boolean[16];
