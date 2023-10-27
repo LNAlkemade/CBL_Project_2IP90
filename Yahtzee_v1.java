@@ -20,6 +20,7 @@ class YahtzeeGame {
     private JPanel scorePanel;
     private JButton[][] scoreButtons;
     private JButton rollButton;
+    private JButton restartButton;
     private JLabel player1Label;
     private JLabel player2Label;
     private int currentPlayer;
@@ -88,7 +89,9 @@ class YahtzeeGame {
         }
 
         JPanel buttonPanel = new JPanel();
+        restartButton = new JButton("Restart game");
         rollButton = new JButton("Roll the Dice (" + rollsRemainingForTurn + " rolls left)");
+        buttonPanel.add(restartButton);
         buttonPanel.add(rollButton);
 
         JLabel probabilityLabel = new JLabel("Yahtzee Probability: ");
@@ -177,6 +180,13 @@ class YahtzeeGame {
                 scorePanel.add(scoreButtons[i][j]);
             }
         }
+
+        restartButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e){
+                
+            }
+        });
 
         rollButton.addActionListener(new ActionListener() {
             @Override
