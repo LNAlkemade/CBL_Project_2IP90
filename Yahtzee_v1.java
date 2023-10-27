@@ -29,7 +29,7 @@ class YahtzeeGame {
     private String[] categories;
     private JTextField probabilityField;
     private Random random;
-    private int[] totalScores;
+    private int[] totalScores, upperScores;
     private boolean[] scoreButtonClicked;
 
     public void openNewGame() {
@@ -64,10 +64,10 @@ class YahtzeeGame {
         rollsRemainingForTurn = 3;
         diceValues = new int[5][2];
         categories = new String[]{
-            "Points", "Ones", "Twos", "Threes", "Fours", "Fives", "Sixes",
-            "Total Upper", "Bonus (35)", "3 of a kind", "4 of a kind", "Full House (25)",
-            "Sm Straight (30)", "Lg Straight (40)", "Yahtzee (50)", "Chance", "Yahtzee Bonus (100)",
-            "Grand Total"
+                "Points", "Ones", "Twos", "Threes", "Fours", "Fives", "Sixes",
+                "Total Upper", "Bonus (35)", "3 of a kind", "4 of a kind", "Full House (25)",
+                "Sm Straight (30)", "Lg Straight (40)", "Yahtzee (50)", "Chance", "Yahtzee Bonus (100)",
+                "Grand Total"
         };
 
         dicePanel = new JPanel();
@@ -128,9 +128,11 @@ class YahtzeeGame {
                                 int category = categoryIndex - 1; // Adjust for zero-based array
                                 int score = calculateScoreForCategory(category, playerIndex + 1);
                                 totalScores[playerIndex] += score; // Accumulate the score in the total score
+                                upperScores[playerIndex] += score;
                                 scoreButtonClicked[categoryIndex] = true; // Mark the button as clicked
                                 scoreButtons[categoryIndex][playerIndex].setEnabled(false);
                                 scoreButtons[0][playerIndex].setText(String.valueOf(totalScores[playerIndex])); // Update the total score label
+                                scoreButtons[7][playerIndex].setText(String.valueOf(upperScores[playerIndex])); // Update upper score total
                                 updateScore();
                                 if (!gameOver) {
                                     switchPlayer();
@@ -143,7 +145,7 @@ class YahtzeeGame {
                     // Categories for 3 of a kind, 4 of a kind, Full House, Small Straight, Large Straight, Yahtzee, and Chance
                     JTextField textField = new JTextField();
                     textField.setEditable(false);
-                     final int categoryIndex = i;
+                    final int categoryIndex = i;
                     final int playerIndex = j;
                     scoreButtons[i][j] = new JButton("Score");
                     scoreButtons[i][j].addActionListener(new ActionListener() {
@@ -218,6 +220,7 @@ class YahtzeeGame {
         gameOver = false;
         random = new Random();
         totalScores = new int[2];
+        upperScores = new int[2];
         scoreButtonClicked = new boolean[16];
 
         for (int i = 0; i < 7; i++) {
@@ -228,7 +231,7 @@ class YahtzeeGame {
     private int calculateScoreForCategory(int category, int player) {
         int score = 0;
         int categoryValue = category + 1; // Adjust for one-based array
-        
+
         if (categoryValue < 7) {
             for (int i = 0; i < 5; i++) {
                 if (diceValues[i][player - 1] == categoryValue) {
@@ -237,7 +240,6 @@ class YahtzeeGame {
             }
             return score;
         } else {
-            System.out.println(categoryValue);
             switch (categoryValue) {
                 case 9:
                     int sum = 0;
@@ -416,8 +418,8 @@ class YahtzeeGame {
     }
 
     private void enableCategoryButtons() {
-        for (int i = 1; i <= 6; i++) {
-            if (!scoreButtonClicked[i] && i != 7 && i != 8) { // Skip Bonus and Total Upper categories
+        for (int i = 1; i <= 6; i++) { // Skip Bonus and Total Upper categories
+            if (!scoreButtonClicked[i]) {
                 scoreButtons[i][currentPlayer - 1].setEnabled(true);
             }
         }
