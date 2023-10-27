@@ -30,9 +30,9 @@ class YahtzeeGame {
     private String[] categories;
     private JTextField probabilityField;
     private Random random;
-    private int[] totalScores, upperScores;
+    private int[] totalScores, upperScores, yahtzeeBonus;
     private int[][] categoryScores;
-    private boolean[] scoreButtonClicked, bonusAdded;
+    private boolean[] scoreButtonClicked, bonusAdded, yahtzeeBonusScored;
 
     public void openNewGame() {
         frame = new JFrame("Yahtzee");
@@ -167,8 +167,10 @@ class YahtzeeGame {
                                 int category = categoryIndex - 1; // Adjust for zero-based array
                                 categoryScores[category][playerIndex] = calculateScoreForCategory(category, playerIndex + 1);
                                 totalScores[playerIndex] += categoryScores[category][playerIndex]; // Accumulate the score in the total score
-                                scoreButtonClicked[categoryIndex] = true; // Mark the button as clicked
-                                scoreButtons[categoryIndex][playerIndex].setEnabled(false);
+                                if(categoryIndex != 14) { //exclude yahtzee button to allow bonus scores
+                                    scoreButtonClicked[categoryIndex] = true; // Mark the button as clicked
+                                    scoreButtons[categoryIndex][playerIndex].setEnabled(false);
+                                }
                                 scoreButtons[0][playerIndex].setText(String.valueOf(totalScores[playerIndex])); // Update the total score label
                                 updateScore();
                                 if (!gameOver) {
@@ -242,6 +244,8 @@ class YahtzeeGame {
         upperScores = new int[2];
         categoryScores = new int[19][2];
         bonusAdded = new boolean[2];
+        yahtzeeBonus = new int[2];
+        yahtzeeBonusScored = new boolean[2];
         scoreButtonClicked = new boolean[16];
 
         for (int i = 0; i < 7; i++) {
@@ -370,6 +374,15 @@ class YahtzeeGame {
 
                     for (int value = 1; value <= 6; value++) {
                         if (counts14[value] >= 5) {
+                            if(categoryScores[13][player - 1] != 0){
+                                yahtzeeBonusScored[player - 1] = true;
+                            }
+                            if(yahtzeeBonusScored[player - 1]) {
+                                yahtzeeBonus[player - 1] += 100;
+                                totalScores[player - 1] += 100;
+                                scoreButtons[16][player - 1].setText(String.valueOf(yahtzeeBonus[player - 1]));
+                                return 0; //Player already scores bonus, no "normal" point rewarded
+                            }
                             return 50;
                         }
                     }
