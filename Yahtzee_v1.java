@@ -15,7 +15,7 @@ public class Yahtzee_v1 {
 class YahtzeeGame {
     private JFrame frame;
     private JPanel dicePanel;
-    private JTextField[] diceFields;
+    private JLabel[] diceFields;
     private JCheckBox[] checkBoxes;
     private JPanel scorePanel;
     private JButton[][] scoreButtons;
@@ -33,6 +33,7 @@ class YahtzeeGame {
     private int[] totalScores, upperScores, lowerScores, yahtzeeBonus;
     private int[][] categoryScores;
     private boolean[] scoreButtonClicked, bonusAdded, yahtzeeBonusScored;
+    private ImageIcon dice;
 
     public void openNewGame() {
         frame = new JFrame("Yahtzee");
@@ -75,13 +76,13 @@ class YahtzeeGame {
 
         dicePanel = new JPanel();
         dicePanel.setLayout(new FlowLayout());
-        diceFields = new JTextField[5];
+        diceFields = new JLabel[5];
         checkBoxes = new JCheckBox[5];
 
         for (int i = 0; i < 5; i++) {
-            diceFields[i] = new JTextField(2);
+            diceFields[i] = new JLabel();
             diceFields[i].setPreferredSize(new Dimension(50, 50));
-            diceFields[i].setEditable(false);
+            diceFields[i].setIcon(new ImageIcon("dice_na.jpeg"));
             checkBoxes[i] = new JCheckBox("Keep");
             JPanel diceWithCheckbox = new JPanel();
             diceWithCheckbox.setLayout(new BoxLayout(diceWithCheckbox, BoxLayout.Y_AXIS));
@@ -416,7 +417,28 @@ class YahtzeeGame {
 
     private void updateDiceFields() {
         for (int i = 0; i < 5; i++) {
-            diceFields[i].setText(String.valueOf(diceValues[i][currentPlayer - 1]));
+            switch (diceValues[i][currentPlayer - 1]){
+                case 1:
+                    dice = new ImageIcon("dice_1.jpeg");
+                    break;
+                case 2:
+                    dice = new ImageIcon("dice_2.jpeg");
+                    break;
+                case 3:
+                    dice = new ImageIcon("dice_3.jpeg");
+                    break;
+                case 4:
+                    dice = new ImageIcon("dice_4.jpeg");
+                    break;
+                case 5:
+                    dice = new ImageIcon("dice_5.jpeg");
+                    break;
+                case 6:
+                    dice = new ImageIcon("dice_6.jpeg");
+                    break;
+            }
+            diceFields[i].setIcon(dice);
+            //diceFields[i].setText(String.valueOf(diceValues[i][currentPlayer - 1]));
         }
     }
 
@@ -427,8 +449,9 @@ class YahtzeeGame {
 
         rollButton.setEnabled(true);
 
+        dice = new ImageIcon("dice_na.jpeg");
         for (int i = 0; i < 5; i++) {
-            diceFields[i].setText("");
+            diceFields[i].setIcon(dice);
         }
     }
 
