@@ -54,13 +54,14 @@ class YahtzeeGame {
 
         frame.add(startPanel, BorderLayout.SOUTH);
 
-        frame.setSize(200, 300);
+        frame.setSize(700, 700);
+        frame.setLocationRelativeTo(null);
         frame.setVisible(true);
     }
 
     public void start() {
         frame.setTitle("Yahtzee Scorecard");
-        frame.setSize(600, 700);
+        frame.setSize(700, 700);
 
         currentPlayer = 1;
         rollsRemainingForTurn = 3;
@@ -450,27 +451,26 @@ class YahtzeeGame {
             checkBoxes[i].setEnabled(rollsRemainingForTurn > 0);
         }
     }
-
     private void calculateYahtzeeProbability() {
         int keptDiceCount = 0;
-        int sameValue = 0;
+        int keptValue = 0;
 
         for (int i = 0; i < 5; i++) {
             if (checkBoxes[i].isSelected()) {
-                int diceValue = diceValues[i][currentPlayer - 1];
-                if (sameValue == 0) {
-                    sameValue = diceValue;
-                } else if (diceValue != sameValue) {
-                    sameValue = -1;
-                }
+                if (keptValue == 0) {
+                    keptValue = diceValues[i][currentPlayer - 1];
+                } else if (keptValue != diceValues[i][currentPlayer-1])
+                    keptValue = -1;
             } else {
                 keptDiceCount++;
             }
 
             double yahtzeeProbability = 0.0;
 
-            if (sameValue != -1 && keptDiceCount > 0) {
+            if (keptValue != -1 && keptDiceCount > 0) {
                 yahtzeeProbability = Math.pow(1.0 / 6.0, keptDiceCount);
+            } else if (keptValue != -1 && keptDiceCount == 0) {
+                yahtzeeProbability = 1;
             }
 
             double percentage = yahtzeeProbability * 100;
